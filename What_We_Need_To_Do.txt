@@ -1,0 +1,102 @@
+1. To make management happy you need to implement this functionality in RISC-V
+  assembly without using a divide (div/divu) instruction:
+  Make a division instruction, we can use the build in add / sub / mul.
+
+2. Then evaluate the performance of your program on the
+  RV32I machine and consider several possible optimizations as detailed below.The
+  machine is a fully pipelined processor with hazard detection, data forwarding, and cache.
+  It predicts branches and jumps as never taken, and implements branch and jump
+  instructions in the MEM stage. This is our QTRVSim
+
+3. Set the cache parameters for both i$ (Program Cache) and d$ (Data Cache) to be direct-
+  mapped with block size of 16 bytes and 64 blocks in each cache. Hence, each cache size
+  is 1 KiB.
+
+Code
+Part 1: 
+  Your first task is to finish the implementation of avg_columns so that it works on
+  unsigned (positive) integers. A simple test case could be
+  𝐴 = 0 1 2
+      1 2 3
+  avg_columns(A, 2, 3);
+  𝑎vg = [0 1 2]
+  Management would like your software implementation to work on test cases up to at least
+  nrow = 32 and ncol = 32.
+
+  1. Make a RISC-V implementation of AVG Columns work:
+
+  unsigned int mm[nrow][ncol];
+  unsigned int avg[nrow];
+
+  void avg_columns(unsigned int **matrix, int nrow, int ncol) {
+    for (int i = 0; i < ncol; i++) {
+      unsigned int sum = 0;
+      for (int k = 0; k < nrow; k++) {
+        sum += matrix[k][i];
+      }
+      avg[i] = sum / nrow;
+    }
+  }
+
+  2. Make it work up to 32 x 32.
+
+Code
+Part 2:
+  Rewrite the assembly code you generated for avg_columns to use the following high-
+  level source code structure:
+
+  void avg_columns(int **matrix, int nrow, int ncol) {
+    for (int i = 0; i < nrow; i++) {
+      avg[i] = matrix[i][0];
+      for (int k = 1; k < ncol; k++) {
+        avg[i] += matrix[i][k];
+      }
+      avg[i] /= nrow;
+    }  
+  }
+
+  1. Make this new implementation work.
+
+Documentation and Analysis
+Part 3:
+  1. Compare your implementations from Part 1 and Part 2 using speedup. Consider a
+  variety of matrix sizes from 8x8 up to 256x256. Does one implementation do
+  better than the other? Why do you think that is?
+  2. Replace your software implementations from Part 1 and Part 2 of division by the
+  divu instruction. Repeat your analysis comparing these two implementations with
+  hardware division. Do your conclusions change? Why do you think that is?
+  3. Repeat the analysis of steps 1 and 2 with four times as much data cache. Consider
+  quadrupling the block size, quadrupling the number of blocks, or doubling the
+  block size and doubling the number of blocks. Do your conclusions change? Does
+  one of the cache parameters help more than the other? Why do you think? 
+  4. If you had to choose between implementing division in hardware and quadrupling the
+  size of the data cache, which would you do? Are you surprised by that conclusion?
+
+Documentation and Analysis
+Part 4:
+  1. Determine how best to represent the results of your analysis from Part 3 using tables or
+  graphs. ****Management is most impressed by fancy graphics and gets bored by lots of text.****
+  2.  Create a written report in PDF format that explains:
+    • Your team composition and roles of each member
+    • Your method of implementation of unsigned column average
+    • Your analyses of performance
+    • Your recommendation for adding more cache versus implementing division in
+      hardware
+    • Anything else you would like to say to management
+  Add the report and its source (e.g., docx file) to your repository. Be careful to avoid
+  merge conflicts with binary format files such as Word or PDF because they can be
+  difficult to resolve.
+
+Submission
+Part 5:
+  1. In addition, generate a text file with the contents of your git log using the command:
+  $ git log --pretty=format:"%h %an (%ad): %s" --date=short > log.txt
+  Submit the log.txt file for 10 points.
+  2. Make a tar and gzip file with your group members’ UCCS usernames (email address
+  without the @uccs.edu part) as the name.
+  – tar -zcvf ${USERNAME1}-{USERNAME2}-{USERNAME3}-project2.tgz ${USERNAME1}-{USERNAME2}-{USERNAME3}-project2/
+  3. Include the PDF report, your source code, and the log.txt file. Upload the tgz file to
+  Project 2 on Canvas.
+
+
+
