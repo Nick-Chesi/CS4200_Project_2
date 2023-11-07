@@ -50,6 +50,13 @@ main:
     call atoi
     mv t3, a0 # Divisor
 
+
+    # Call division
+    mv a0, t2  # Dividend
+    mv a1, t3  # Divisor
+    call do_division
+    mv t4, a0  # Quotient
+
     # Exit
     li a7, __NR_EXIT
     li a0, 0
@@ -64,10 +71,27 @@ main:
 # until the dividend is less than divisor.
 
 do_division:
+    # Check if divisor is zero
+    beq a1, zero, division_error
+
+    li a0, 0          # Quotient
+    mv t0, a0         # Dividend 
+    mv t1, a1         # Divisor 
+
+division_error:
+    # PROMPT DIVISION ERROR
+    li a7, __NR_WRITE
+    li a0, STDOUT
+    la a1, promptDivErr
+    addi a2, zero, promptDivErr_end - promptDivErr
+    ecall   
 
 .data
 promptInt: .ascii "Please enter an integer: \n"
 promptInt_end:
+
+promptDivErr: .ascii "Division Error \n"
+promptDivErr_end:
 
 promptOne: .ascii "\n"
 promptOne_end:
