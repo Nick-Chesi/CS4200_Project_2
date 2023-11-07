@@ -42,11 +42,11 @@ main:
     # INTEGER TWO INPUT
     li a7, __NR_READ
     li a0, STDIN
-    la a1, buf3
+    la a1, buf2
     addi a2, zero, 100
     ecall
-    sb zero, buf3(a0)
-    la a0, buf3
+    sb zero, buf2(a0)
+    la a0, buf2
     call atoi
     mv t3, a0 # Divisor
 
@@ -106,3 +106,10 @@ promptDivErr_end:
 
 promptOne: .ascii "\n"
 promptOne_end:
+
+#Input buffers
+buf1: .space 25
+buf1_end:
+
+buf2: .space 25
+buf2_end:
