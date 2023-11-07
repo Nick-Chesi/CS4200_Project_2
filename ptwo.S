@@ -14,14 +14,14 @@
 .text
 main:
 
- PROMPT INITIAL INTEGER
+    # PROMPT INITIAL INTEGER
     li a7, __NR_WRITE
     li a0, STDOUT
     la a1, promptInt
     addi a2, zero, promptInt_end - promptInt
     ecall
 
-# INTEGER ONE INPUT
+    # INTEGER ONE INPUT
     li a7, __NR_READ
     li a0, STDIN
     la a1, buf1
@@ -30,16 +30,16 @@ main:
     sb zero, buf1(a0)
     la a0, buf1
     call atoi
-    mv t2, a0
+    mv t2, a0 # Dividend
 
-# PROMPT SECOND INTEGER
+    # PROMPT SECOND INTEGER
     li a7, __NR_WRITE
     li a0, STDOUT
     la a1, promptInt
     addi a2, zero, promptInt_end - promptInt
     ecall
 
-# INTEGER TWO INPUT
+    # INTEGER TWO INPUT
     li a7, __NR_READ
     li a0, STDIN
     la a1, buf3
@@ -48,7 +48,12 @@ main:
     sb zero, buf3(a0)
     la a0, buf3
     call atoi
-    mv t3, a0
+    mv t3, a0 # Divisor
+
+    # Exit
+    li a7, __NR_EXIT
+    li a0, 0
+    ecall
 
 ######################
 # Division Diagram
