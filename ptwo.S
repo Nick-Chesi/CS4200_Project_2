@@ -57,6 +57,8 @@ main:
     call do_division
     mv t4, a0  # Quotient
 
+    # Return here after division
+    
     # Exit
     li a7, __NR_EXIT
     li a0, 0
@@ -77,6 +79,15 @@ do_division:
     li a0, 0          # Quotient
     mv t0, a0         # Dividend 
     mv t1, a1         # Divisor 
+
+division_loop:
+    blt t0, t1, division_done
+    sub t0, t0, t1
+    addi a0, a0, 1
+    j division_loop
+
+division_done:
+    ret
 
 division_error:
     # PROMPT DIVISION ERROR
