@@ -1,3 +1,7 @@
+# Project 2
+# Elise, Colby, Nick
+# Gedare Bloom
+
 .globl main
 
 # Constants
