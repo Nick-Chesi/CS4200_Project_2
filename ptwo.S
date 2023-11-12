@@ -146,6 +146,46 @@ division_error:
     addi a2, zero, promptDivErr_end - promptDivErr
     ecall   
 
+######################
+# Average Columns
+######################
+#a0 = matrix (pointer to first element), a1 = nrow, a2 = ncol
+avg_columns:
+    mv t2, a2       # t2 = ncol
+    li t0, 0        # t0 = i = 0
+
+column_loop:
+    bge t0, t2, end_column_loop # if i >= ncol, exit loop
+
+    li t1, 0        # t1 = k = 0
+    li t3, 0        # t3 = sum = 0
+
+row_loop:
+    bge t1, a1, end_row_loop # if k >= nrow, exit loop
+
+    # Calculate address of matrix[k][i]
+    slli t4, t1, 5    # t4 = k * 32 * sizeof(unsigned int) up to 32
+    slli t5, t0, 2    # t5 = i * sizeof(unsigned int)
+    add t6, t4, t5    # t6 = k * row size + i
+    add t6, a0, t6    # t6 = &matrix[k][i]
+    lw t5, 0(t6)      # t5 = matrix[k][i]
+
+    add t3, t3, t5    # sum += matrix[k][i]
+    addi t1, t1, 1    # Increment k
+    j row_loop
+
+end_row_loop:
+    div t3, t3, a1    # avg = sum / nrow
+    slli t6, t0, 2    # t6 = i * sizeof(unsigned int)
+    add t6, s0, t6    # t6 = &avg[i]
+    sw t3, 0(t6)      # avg[i] = avg
+
+    addi t0, t0, 1    # Increment i
+    j column_loop
+
+end_column_loop:
+    ret
+
 .data
 promptInt: .ascii "Please enter an integer: \n"
 promptInt_end:
@@ -155,7 +195,6 @@ promptDivErr_end:
 
 promptOne: .ascii "\n"
 promptOne_end:
-
 
 promptDivErr: .ascii "Error With Division"
 promptDivErr_end:
