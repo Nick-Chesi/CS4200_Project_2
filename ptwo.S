@@ -156,6 +156,10 @@ promptDivErr_end:
 promptOne: .ascii "\n"
 promptOne_end:
 
+
+promptDivErr: .ascii "Error With Division"
+promptDivErr_end:
+
 #Input buffers
 buf1: .space 25
 buf1_end:
