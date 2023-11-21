@@ -14,49 +14,7 @@
 .text
 main:
 
-    # PROMPT INITIAL INTEGER
-    li a7, __NR_WRITE
-    li a0, STDOUT
-    la a1, promptInt
-    addi a2, zero, promptInt_end - promptInt
-    ecall
-
-    # INTEGER ONE INPUT
-    li a7, __NR_READ
-    li a0, STDIN
-    la a1, buf1
-    addi a2, zero, 100
-    ecall
-    mv t0, a0      # Store the number of bytes read in t0
-    sb zero, buf1(t0)  # Null-terminate the string at the correct position
-    la a0, buf1
-    call atoi
-    mv t2, a0 # Dividend
-
-    # PROMPT SECOND INTEGER
-    li a7, __NR_WRITE
-    li a0, STDOUT
-    la a1, promptInt
-    addi a2, zero, promptInt_end - promptInt
-    ecall
-
-    # INTEGER TWO INPUT
-    li a7, __NR_READ
-    li a0, STDIN
-    la a1, buf2
-    addi a2, zero, 100
-    ecall
-    mv t0, a0      # Store the number of bytes read in t0
-    sb zero, buf2(t0)  # Null-terminate the string at the correct position
-    la a0, buf2
-    call atoi
-    mv t3, a0 # Divisor
-
-    # Call division
-    mv a0, t2  # Dividend
-    mv a1, t3  # Divisor
-    call do_division
-    mv t4, a0  # Quotient
+    # Call inital AVG Columns
 
     # Exit
     li a7, __NR_EXIT
@@ -126,11 +84,11 @@ division_error:
     ecall   
 
 ######################
-# Average Columns
+# Average Columns Inital
 ######################
 avg_columns:
     mv t2, a2       # t2 = ncol
-    li t0, 0        # t0 = i = 0
+    li t0, 0            # t0 = i = 0
 
 column_loop:
     bge t0, t2, end_column_loop # if i >= ncol, exit loop
@@ -142,27 +100,74 @@ row_loop:
     bge t1, a1, end_row_loop # if k >= nrow, exit loop
 
     # Calculate address of matrix[k][i]
-    slli t4, t1, 2    # t4 = k * sizeof(unsigned int)
-    add t5, t4, t0    # t5 = k * row size + i
-    add t6, a0, t5    # t6 = &matrix[k][i]
-    lw t5, 0(t6)      # t5 = matrix[k][i]
+    slli t4, t1, 2         # t4 = k * sizeof(unsigned int)
+    add t5, t4, t0      # t5 = k * row size + i
+    add t6, a0, t5     # t6 = &matrix[k][i]
+    lw t5, 0(t6)         # t5 = matrix[k][i]
 
-    add t3, t3, t5    # sum += matrix[k][i]
-    addi t1, t1, 1    # Increment k
+    add t3, t3, t5      # sum += matrix[k][i]
+    addi t1, t1, 1      # Increment k
     j row_loop
 
 end_row_loop:
-    mv a0, t3          # Move sum to a0
-    mv a1, a1          # Move nrow to a1
-    call do_division   # Call do_division
-    mv t3, a0          # Store division result in t3
-    slli t6, t0, 2    # t6 = i * sizeof(unsigned int)
-    add t6, s0, t6    # t6 = &avg[i]
-    sw t3, 0(t6)      # avg[i] = avg
-    addi t0, t0, 1    # Increment i
+    mv a0, t3               # Move sum to a0
+    mv a1, a1              # Move nrow to a1
+    call do_division      # Call do_division
+    mv t3, a0               # Store division result in t3
+    slli t6, t0, 2            # t6 = i * sizeof(unsigned int)
+    add t6, s0, t6         # t6 = &avg[i]
+    sw t3, 0(t6)           # avg[i] = avg
+    addi t0, t0, 1         # Increment i
     j column_loop
 
 end_column_loop:
+    ret
+
+######################
+# Average Columns Re-written
+######################
+
+# avg_columns function
+# a0 = matrix (pointer to first element)
+# a1 = nrow
+# a2 = ncol
+# s0 = avg (pointer to the average array)
+avg_columns:
+    mv t1, a2       # t1 = ncol
+    li t0, 0            # t0 = i = 0
+
+row_loop:
+    bge t0, a1, end_row_loop # if i >= nrow, exit loop
+
+    li t2, 0        # t2 = k = 0
+    li t3, 0        # t3 = sum = 0
+
+column_loop:
+    bge t2, t1, end_column_loop # if k >= ncol, exit loop
+
+    # Calculate address of matrix[i][k]
+    slli t4, t0, 2       # t4 = i * sizeof(int)
+    mul t4, t4, t1    # t4 = i * ncol * sizeof(int)
+    add t5, t4, t2    # t5 = i * ncol + k
+    add t6, a0, t5   # t6 = &matrix[i][k]
+    lw t5, 0(t6)       # t5 = matrix[i][k]
+
+    add t3, t3, t5    # sum += matrix[i][k]
+    addi t2, t2, 1    # Increment k
+    j column_loop
+
+end_column_loop:
+    mv a0, t3             # Move sum to a0
+    li a1, 1                 # a1 = 1 (as divisor)
+    call do_division    # Call do_division
+    mv t3, a0             # Store division result in t3
+    slli t4, t0, 2          # t4 = i * sizeof(int)
+    add t4, s0, t4       # t4 = &avg[i]
+    sw t3, 0(t4)          # avg[i] = avg
+    addi t0, t0, 1        # Increment i
+    j row_loop
+
+end_row_loop:
     ret
 
 .data
