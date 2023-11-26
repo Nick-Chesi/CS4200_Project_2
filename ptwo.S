@@ -14,7 +14,13 @@
 .text
 main:
 
-    # Call inital AVG Columns
+    la a0, matrix     # Load address of matrix into a0
+    li a1, 8              # Set nrow to 8
+    li a2, 8              # Set ncol to 8
+    la s0, avg         # Load address of avg array into s0
+
+    # Call avg_columns
+    call avg_columns
 
     # Exit
     li a7, __NR_EXIT
@@ -132,7 +138,7 @@ end_column_loop:
 # a1 = nrow
 # a2 = ncol
 # s0 = avg (pointer to the average array)
-avg_columns:
+avg_columns_re:
     mv t1, a2       # t1 = ncol
     li t0, 0            # t0 = i = 0
 
