@@ -185,3 +185,6 @@ buf1_end:
 
 buf2: .space 25
 buf2_end:
+
+matrix: .space 256    # Allocate space for 8x8 matrix (assuming 4 bytes per element)
+avg:    .space 32     # Allocate space for average array (8 elements, 4 bytes each)
