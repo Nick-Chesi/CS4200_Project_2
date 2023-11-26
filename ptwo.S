@@ -13,6 +13,8 @@
 
 .text
 main:
+
+    # Setup for 1st avg_columns
     la a0, matrix       # Load address of matrix into a0
     li a1, 8            # Set nrow to 8
     li a2, 8            # Set ncol to 8
@@ -20,9 +22,25 @@ main:
 
     # Call avg_columns
     call avg_columns
+    
+    # Setup for 2nd avg_columns
+    la a0, matrix       # Load address of matrix into a0
+    li a1, 8            # Set nrow to 8
+    li a2, 8            # Set ncol to 8
+    la s0, avg          # Load address of avg array into s0
 
     # Call avg_columns_re
     call avg_columns_re
+    
+    # Setup for risc-v div avg_columns
+    # Load the address of the matrix and average array
+    la a0, matrix       # Address of the matrix
+    li a1, 8            # Number of rows
+    li a2, 8            # Number of columns
+    la s0, avg          # Address of the average array
+
+    # Call avg_columns_riscv_div
+    call avg_columns_riscv_div
 
     # loading results into array avg
     # NOTE: we really do not need to do this I dont think
@@ -151,6 +169,50 @@ re_column_loop_end:
     j re_row_loop
 
 re_row_loop_end:
+    ret
+
+######################
+# Average Columns With RISC-V Div
+######################
+
+avg_columns_riscv_div:
+    mv t2, a2                # t2 = ncol
+    li t0, 0                 # t0 = i = 0
+
+avg_column_riscv_div_loop:
+    # if i >= ncol, exit loop
+    bge t0, t2, avg_column_riscv_div_loop_end
+
+    li t1, 0                 # t1 = k = 0
+    li t3, 0                 # t3 = sum = 0
+
+avg_row_riscv_div_loop:
+    # if k >= nrow, exit loop
+    bge t1, a1, avg_row_riscv_div_loop_end
+
+    # Calculate address of matrix[k][i]
+    slli t4, t1, 2           # t4 = k * sizeof(unsigned int)
+    add t5, t4, t0           # t5 = k * row size + i
+    add t6, a0, t5           # t6 = &matrix[k][i]
+    lw t5, 0(t6)             # t5 = matrix[k][i]
+
+    add t3, t3, t5           # sum += matrix[k][i]
+    addi t1, t1, 1           # Increment k
+    j avg_row_riscv_div_loop
+
+avg_row_riscv_div_loop_end:
+    mv a0, t3                # Move sum to a0
+    li t4, 1                 # Set divisor (nrow) to 1
+    # Check for division by zero
+    beqz t4, division_error
+    div t3, a0, t4           # Divide sum by nrow
+    slli t6, t0, 2           # t6 = i * sizeof(unsigned int)
+    add t6, s0, t6           # t6 = &avg[i]
+    sw t3, 0(t6)             # avg[i] = avg
+    addi t0, t0, 1           # Increment i
+    j avg_column_riscv_div_loop
+
+avg_column_riscv_div_loop_end:
     ret
 
 .data
