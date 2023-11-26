@@ -21,6 +21,9 @@ main:
     # Call avg_columns
     call avg_columns
 
+    # Call avg_columns_re
+    call avg_columns_re
+
     # Exit
     li a7, __NR_EXIT
     li a0, 0
