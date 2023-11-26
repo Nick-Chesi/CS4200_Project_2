@@ -24,6 +24,13 @@ main:
     # Call avg_columns_re
     call avg_columns_re
 
+    # loading results into array avg
+    # NOTE: we really do not need to do this I dont think
+    # as we can just check registers after running the code
+    # and count CPU Cycles - Nick
+    la a0, avg        # Load the address of the avg array
+    li t1, 8          # Assuming 8 elements in avg
+
     # Exit
     li a7, __NR_EXIT
     li a0, 0
