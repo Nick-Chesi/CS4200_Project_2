@@ -27,40 +27,6 @@ main:
     li a0, 0
     ecall
 
-#######################################
-# ASCII to Integer
-#######################################
-atoi:
-    li t1, 0  # Initialize result to 0
-    lb t0, 0(a0)  # Load first byte
-    bnez t0, not_end
-    j atoi_done
-
-not_end:
-    li t2, 10  # Set t2 to 10 for multiplication
-    li t3, 48  # Set t3 to ASCII '0' = 48
-    li t4, 1   # Initialize sign to 1
-    li t5, 45  # Set t5 to ASCII '-' = 45
-    beq t0, t5, atoi_neg  # Check for '-' sign
-
-atoi_loop:
-    sub t0, t0, t3  # Convert ASCII to integer
-    mul t1, t1, t2  # Multiply result by 10
-    add t1, t1, t0  # Add current digit to result
-    addi a0, a0, 1  # Increment address
-    lb t0, 0(a0)    # Load next byte
-    bnez t0, atoi_loop
-
-atoi_done:
-    mv a0, t1
-    ret
-
-atoi_neg:
-    li t4, -1  # Set sign to -1
-    addi a0, a0, 1  # Increment address
-    lb t0, 0(a0)  # Load next byte
-    bnez t0, atoi_loop
-
 ######################
 # Division
 ######################
