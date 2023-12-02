@@ -80,6 +80,17 @@ avg_row_riscv_div_loop_end:
 avg_column_riscv_div_loop_end:
     ret
 
+division_error:
+    # Prompt division error and exit
+    li a7, __NR_WRITE
+    li a0, STDOUT
+    la a1, promptDivErr
+    addi a2, zero, promptDivErr_end - promptDivErr
+    ecall   
+    li a7, __NR_EXIT  # Exit syscall
+    li a0, 1          # Error code
+    ecall
+
 .data
 promptDivErr: .ascii "Division Error \n"
 promptDivErr_end:
