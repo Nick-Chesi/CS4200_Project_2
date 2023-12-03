@@ -67,7 +67,7 @@ avg_row_riscv_div_loop:
 
 avg_row_riscv_div_loop_end:
     mv a0, t3                # Move sum to a0
-    li t4, 1                 # Set divisor (nrow) to 1
+    mv t4, a1                # Set divisor to nrow (a1)
     # Check for division by zero
     beqz t4, division_error
     div t3, a0, t4           # Divide sum by nrow
