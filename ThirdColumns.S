@@ -13,9 +13,7 @@
 
 .text
 main:
-
     # Setup for risc-v div avg_columns
-    # Load the address of the matrix and average array
     la a0, matrix       # Address of the matrix
     li a1, 8            # Number of rows
     li a2, 8            # Number of columns
@@ -25,11 +23,8 @@ main:
     call avg_columns_riscv_div
 
     # loading results into array avg
-    # NOTE: we really do not need to do this I dont think
-    # as we can just check registers after running the code
-    # and count CPU Cycles - Nick
-    la a0, avg        # Load the address of the avg array
-    li t1, 8          # Assuming 8 elements in avg
+    la a0, avg          # Load the address of the avg array
+    li t1, 8            # Assuming 8 elements in avg
 
     # Exit
     li a7, __NR_EXIT
@@ -42,43 +37,49 @@ main:
 
 avg_columns_riscv_div:
     mv t2, a2                # t2 = ncol
-    li t0, 0                 # t0 = i = 0
+    li t0, 0                 # t0 = i = 0 (column index)
 
 avg_column_riscv_div_loop:
-    # if i >= ncol, exit loop
-    bge t0, t2, avg_column_riscv_div_loop_end
+    bge t0, t2, avg_column_riscv_div_loop_end  # Exit loop if i >= ncol
 
-    li t1, 0                 # t1 = k = 0
+    li t1, 0                 # t1 = k = 0 (row index)
     li t3, 0                 # t3 = sum = 0
 
 avg_row_riscv_div_loop:
-    # if k >= nrow, exit loop
-    bge t1, a1, avg_row_riscv_div_loop_end
+    bge t1, a1, avg_row_riscv_div_loop_end    # Exit loop if k >= nrow
 
-    # Calculate address of matrix[k][i]
-    slli t4, t1, 2           # t4 = k * sizeof(unsigned int)
-    add t5, t4, t0           # t5 = k * row size + i
-    add t6, a0, t5           # t6 = &matrix[k][i]
-    lw t5, 0(t6)             # t5 = matrix[k][i]
+    # Corrected address calculation for matrix[k][i]
+    la t4, matrix            # Load base address of matrix into t4
+    mul t5, t1, t2           # k * ncol
+    add t5, t5, t0           # k * ncol + i
+    li t6, 4                 # Immediate value of 4
+    mul t5, t5, t6           # 4(k * ncol + i)
+    add t4, t4, t5           # Final memory address for matrix[k][i] in t4
+    lw t5, 0(t4)             # Load word from matrix[k][i]
 
     add t3, t3, t5           # sum += matrix[k][i]
-    addi t1, t1, 1           # Increment k
-    j avg_row_riscv_div_loop
+    addi t1, t1, 1           # Increment row index k
+    j avg_row_riscv_div_loop  # Jump back to the start of the row loop
 
 avg_row_riscv_div_loop_end:
     mv a0, t3                # Move sum to a0
-    mv t4, a1                # Set divisor to nrow (a1)
-    # Check for division by zero
-    beqz t4, division_error
-    div t3, a0, t4           # Divide sum by nrow
-    slli t6, t0, 2           # t6 = i * sizeof(unsigned int)
-    add t6, s0, t6           # t6 = &avg[i]
-    sw t3, 0(t6)             # avg[i] = avg
-    addi t0, t0, 1           # Increment i
-    j avg_column_riscv_div_loop
+    li a1, 8                 # Set divisor to nrow
+    # RISC-V division
+    beqz a1, division_error  # Check for division by zero
+    div t3, a0, a1           # Divide sum by nrow using RISC-V div
+
+    # Corrected address calculation for avg array
+    la t4, avg               # Load base address of avg into t4
+    li t6, 4                 # Immediate value of 4
+    mul t5, t0, t6           # 4 * i
+    add t4, t4, t5           # Final memory address for avg[i]
+    sw t3, 0(t4)             # Store average in avg[i]
+
+    addi t0, t0, 1           # Increment column index i
+    j avg_column_riscv_div_loop  # Jump back to the start of the column loop
 
 avg_column_riscv_div_loop_end:
-    ret
+    ret                      # Return from the function
 
 division_error:
     # Prompt division error and exit
